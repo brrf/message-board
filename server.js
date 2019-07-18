@@ -5,11 +5,14 @@ var bodyParser  = require('body-parser');
 var expect      = require('chai').expect;
 var cors        = require('cors');
 
+require('dotenv').config()
+
 var apiRoutes         = require('./routes/api.js');
 var fccTestingRoutes  = require('./routes/fcctesting.js');
 var runner            = require('./test-runner');
 
 var app = express();
+const db = require('./db')
 
 app.use('/public', express.static(process.cwd() + '/public'));
 
@@ -66,5 +69,6 @@ app.listen(process.env.PORT || 3000, function () {
     }, 1500);
   }
 });
+db();
 
 module.exports = app; //for testing
