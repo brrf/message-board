@@ -17,17 +17,29 @@ module.exports = function (app) {
   app.route('/api/threads/:board')
   	.get(  async (req, res) => {
   		var Board = mongoose.model(req.params.board, threadSchema);
-  		const threads = await Board.find({}, 
+  		try {
+  			if (req.query.thread_id) {
+  			const thread = await Board.findById(req.query.thread_id, 'text replies');
+  			return res.json(thread)
+  			}
+  		} catch (err) {
+  			console.error(err);
+  		}
+  		try {
+  			const threads = await Board.find({}, 
   			'text replies',
   			{
   				sort: {bumped_on: -1}, 
   				limit: 10
   			} 		
-  		)
-  		threads.forEach( thread => {
-  			thread.replies.splice(0, thread.replies.length - 3);
-  		})
-  		res.json(threads)
+  			)
+	  		threads.forEach( thread => {
+	  			thread.replies.splice(0, thread.replies.length - 3);
+	  		})
+	  		res.json(threads)
+  		} catch (err) {
+  			console.error(err);
+  		}
   	})
   	.post( async (req, res) => {
   		const {text, delete_password} = req.body
