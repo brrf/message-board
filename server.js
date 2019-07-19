@@ -7,11 +7,13 @@ var cors        = require('cors');
 
 require('dotenv').config()
 
+const helmet = require('helmet');
 var apiRoutes         = require('./routes/api.js');
 var fccTestingRoutes  = require('./routes/fcctesting.js');
 var runner            = require('./test-runner');
 
 var app = express();
+app.use(helmet());
 const db = require('./db')
 
 app.use('/public', express.static(process.cwd() + '/public'));
