@@ -18,14 +18,6 @@ module.exports = function (app) {
   	.get(  async (req, res) => {
   		var Board = mongoose.model(req.params.board, threadSchema);
   		try {
-  			if (req.query.thread_id) {
-  			const thread = await Board.findById(req.query.thread_id, 'text replies');
-  			return res.json(thread)
-  			}
-  		} catch (err) {
-  			console.error(err);
-  		}
-  		try {
   			const threads = await Board.find({}, 
   			'text replies',
   			{
@@ -53,30 +45,15 @@ module.exports = function (app) {
   		} catch {
   			res.send('could not create thread')
   		}
-  		
-
   	})
   	.put ( async (req, res) => {
   		var Board = mongoose.model(req.params.board, threadSchema);
   		try {
-  			let thread = await Board.findById(req.body.thread_id);
-  			
-  			//If trying to report a reply 
-  			if (req.body.reply_id) {
-  				thread.replies.forEach(async reply => {
-  					if(reply._id === req.body.reply_id) {
-						reply.reported = true
-						thread.markModified('replies');
-						await thread.save();
-						return res.send('reply reported');
-  					}
-  				})
-  			// If trying to report a thread
-  			} else {
+  			let thread = await Board.findById(req.body.thread_id); 			
+  			//report a thread
   				thread.reported = true;
   				await thread.save();
   				return res.send('thread reported')
-  			}
   		} catch (err) {
   			console.error(err);
   			res.send('error reporting this post')
@@ -99,11 +76,18 @@ module.exports = function (app) {
   			console.error(err);
   			res.status(500).json('Error in database')
   		}
-  		
-
-  	})
+  	});
     
   app.route('/api/replies/:board')
+  	.get (async (req, res) => {
+  		let Board = mongoose.model(req.params.board, threadSchema);
+  		try {
+  			const thread = await Board.findById(req.query.thread_id, 'text replies');
+  			res.json(thread)
+  		} catch (err) {
+  			console.error(err);
+  		}
+  	})
   	.post( async (req, res) => {
   		const {text, delete_password, thread_id} = req.body;
 
@@ -130,5 +114,46 @@ module.exports = function (app) {
   			res.status(500).json('error posting reply')
   		}
   	})
-
+  	.put( async (req, res) => {
+  		let Board = mongoose.model(req.params.board, threadSchema);
+  		if (!req.body.thread_id || !req.body.reply_id) {
+  			return res.send('Please provide a reply to report')
+  		}
+  		try {
+  			let thread = await Board.findById(req.body.thread_id);
+  			 //report a reply 
+			thread.replies.forEach(async reply => {
+				if(reply._id === req.body.reply_id) {
+				reply.reported = true
+				thread.markModified('replies');
+				await thread.save();
+				return res.send('reply reported');
+				}
+			})
+		} catch (err) {
+			console.error(err)
+			res.send('We are having some trouble reporting this reply!')
+		}
+	})
+	.delete(async (req, res) => {
+		let Board = mongoose.model(req.params.board, threadSchema);
+		try {
+			let thread = await Board.findOne({_id: req.body.thread_id});
+			thread.replies.forEach(async reply => {
+				if(reply._id === req.body.reply_id) {
+					if (req.body.delete_password !== reply.delete_password) {
+						return res.send('incorrect password')
+					} else {
+						reply.text = '[deleted]';
+						thread.markModified('replies');
+						await thread.save();
+						res.send('success')
+					}
+				}
+			});
+		} catch (err) {
+			console.error(err);
+			res.send('error trying to delete reply!')
+		}
+	})
 };
