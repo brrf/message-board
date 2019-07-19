@@ -21,9 +21,12 @@ module.exports = function (app) {
   			'text replies',
   			{
   				sort: {bumped_on: -1}, 
-  				limit: 2
-  			}
+  				limit: 10
+  			} 		
   		)
+  		threads.forEach( thread => {
+  			thread.replies.splice(0, thread.replies.length - 3);
+  		})
   		res.json(threads)
   	})
   	.post( async (req, res) => {
