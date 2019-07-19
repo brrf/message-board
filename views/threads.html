@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body>
+	<div id='parent'>
+
+	</div>
+	<button id='getThreads'>Get Threads</button>
+
+	<script>
+
+	document.addEventListener('click', getThreads);
+
+
+	function getThreads () {
+		let parent = document.getElementById('parent');
+		fetch('http://localhost:3000/api/threads/firstboards')
+			.then( (res) => res.json())
+			.then( (data) => {
+				let output = '<h1>Recent Threads</h1>';
+
+				data.forEach( (thread) => {
+					output += `<h2>${thread.text}</h2>`;
+					thread.replies.forEach( reply => {
+						output += `<p>${reply.text}</p>`
+					})
+				})			
+				parent.innerHTML = output
+			})
+	}
+	</script>
+</body>
+</html>
