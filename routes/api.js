@@ -60,25 +60,26 @@ module.exports = function (app) {
   		var Board = mongoose.model(req.params.board, threadSchema);
   		try {
   			let thread = await Board.findById(req.body.thread_id);
-  			thread.replies[0].reported = true;
-  			thread.markModified('replies');
-  			await thread.save();
-
-  			// if (req.body.reply_id) {
-  			// 	thread.replies.forEach(async reply => {
-  			// 		if(reply._id === req.body.reply_id) {
-					// 	reply.reported = true
-					// 	await thread.save();
-					// 	console.log('done!')
-					// 	return;
-  			// 		}
-  			// 	})
-  			// } else console.log('not found');
-
-  			res.json(thread)
+  			
+  			//If trying to report a reply 
+  			if (req.body.reply_id) {
+  				thread.replies.forEach(async reply => {
+  					if(reply._id === req.body.reply_id) {
+						reply.reported = true
+						thread.markModified('replies');
+						await thread.save();
+						return res.send('reply reported');
+  					}
+  				})
+  			// If trying to report a thread
+  			} else {
+  				thread.reported = true;
+  				await thread.save();
+  				return res.send('thread reported')
+  			}
   		} catch (err) {
   			console.error(err);
-  			res.send('error reporting thread')
+  			res.send('error reporting this post')
   		}
   	})
   	.delete ( async (req, res) => {
