@@ -83,6 +83,10 @@ module.exports = function (app) {
   		let Board = mongoose.model(req.params.board, threadSchema);
   		try {
   			const thread = await Board.findById(req.query.thread_id, 'text replies');
+  			thread.replies.forEach(reply => {
+  				delete reply.delete_password;
+  				delete reply.reported
+  			})
   			res.json(thread)
   		} catch (err) {
   			console.error(err);

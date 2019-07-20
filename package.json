@@ -7,7 +7,8 @@
 	"description": "What am I about?",
 	"main": "server.js",
 	"scripts": {
-		"start": "nodemon server.js"
+		"start": "nodemon server.js",
+		"test": "mocha -u tdd tests/2_functional-tests.js|| true"
 	},
 	"dependencies": {
 		"body-parser": "^1.15.2",
